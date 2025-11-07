@@ -1,0 +1,6 @@
+# Manual test checklist for A5-Broken-Access-Control
+
+- [ ] Reproduce vulnerability using PoC.
+- [ ] Apply fix.
+- [ ] Re-test to ensure vulnerability is mitigated.
+- [ ] Collect evidence (screenshots, logs).

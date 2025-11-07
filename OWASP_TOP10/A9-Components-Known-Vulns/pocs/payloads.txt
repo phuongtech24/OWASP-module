@@ -1,0 +1,9 @@
+# PoC and payloads for A9-Components-Known-Vulns - Using Components with Known Vulnerabilities
+
+- Description: [Short description of PoC vector]
+- PoC examples:
+  - Example 1: [payload or request]
+  - Example 2: [payload or request]
+
+Notes:
+- Capture HAR and Burp logs for evidence.

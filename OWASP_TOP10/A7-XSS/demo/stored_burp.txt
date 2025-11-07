@@ -1,0 +1,179 @@
+===========================
+PROJECT: MyApp - Stored XSS test
+TARGET(S): http://127.0.0.1:3000/ <replace with specific endpoint(s) e.g. /comments, /profile>
+BURP LISTENER: 127.0.0.1:8081
+Tester: Nguyễn Khắc Nam Phương
+Date: 2025-11-06
+===========================
+
+--- A. VULNERABLE STATE (PROOF: INSERT SAVED PAYLOAD AND RETRIEVAL) ---
+Timestamp (insertion): 2025-11-06 10:05:00
+Action performed (insertion):
+- HTTP request used to insert payload (raw):
+POST /stored HTTP/1.1
+Host: 127.0.0.1:3000
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 54
+Origin: http://127.0.0.1:3000
+Connection: keep-alive
+Referer: http://127.0.0.1:3000/stored
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+Priority: u=0, i
+
+name=phuong&comment=%3Csvg+onload+%3D+alert%281%29+%3E
+
+Server response to insertion (raw):
+HTTP/1.1 302 Found
+X-Powered-By: Express
+Location: /stored
+Vary: Accept
+Content-Type: text/html; charset=utf-8
+Content-Length: 36
+Date: Thu, 06 Nov 2025 09:40:29 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+<p>Found. Redirecting to /stored</p>
+
+Observed persistence:
+- The payload was stored in the application database and later returned in page(s) below.
+
+
+
+
+Observed behavior:
+- The stored payload `<script>alert(1)</script>` was served to other users and executed by the browser when viewing the post.
+- Vulnerability type: Stored (persistent) XSS via parameter `comment` stored in comments table.
+
+Severity / Impact:
+- Severity: High (persistent XSS allows persistent exploitation, phishing, session theft).
+- Impact: Attackers can inject scripts that execute for any user who views the affected page, potentially stealing cookies, performing actions, or loading remote payloads.
+
+---
+
+--- B. AFTER FIX (PATCHED) ---
+Timestamp (patch deployed): 2025-11-06 15:00:00
+Fix summary:
+- Applied output encoding/escaping when rendering comments.
+- Added input sanitization and a whitelist for allowed HTML (if rich text needed) using a safe sanitizer library.
+- Ensured HTTP-only, SameSite cookies and CSP applied to mitigate impact.
+
+Example fix code snippets:
+
+Timestamp (insertion): 2025-11-06 10:05:00
+Action performed (insertion):
+- HTTP request used to insert payload (raw):
+POST /stored HTTP/1.1
+Host: 127.0.0.1:3000
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 54
+Origin: http://127.0.0.1:3000
+Connection: keep-alive
+Referer: http://127.0.0.1:3000/stored
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+Priority: u=0, i
+
+name=phuong&comment=%3Csvg+onload+%3D+alert%281%29+%3E
+
+Server response to insertion (raw):
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+Content-Length: 123
+Date: ...
+(--- paste full response headers and body showing success or ID returned ---)
+
+Observed persistence:
+- The payload was stored in the application database and later returned in page(s) below.
+
+Timestamp (retrieval / trigger): 2025-11-06 10:12:34
+Request when payload executed (retrieval; raw):
+GET /stored HTTP/1.1
+Host: 127.0.0.1:3000
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Referer: http://127.0.0.1:3000/stored
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+Priority: u=0, i
+
+
+
+Response (raw) when viewing post/comments:
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: text/html; charset=utf-8
+Content-Length: 835
+ETag: W/"343-BwaopXtavoSxMDWlpEODxwYx230"
+Date: Thu, 06 Nov 2025 09:38:27 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Stored XSS</title></head>
+  <body>
+    <h1>Stored XSS demo</h1>
+    <form method="post" action="/stored">
+      <input name="name" placeholder="name"/><br/>
+      <textarea name="comment" placeholder="comment"></textarea><br/>
+      <button>Submit</button>
+    </form>
+    <h2>Comments</h2>
+    <ul>
+      
+        <li><strong>phuong:</strong> &lt;svg onload=alert(1)&gt;</li>
+      
+        <li><strong>phuong:</strong> &lt;svg onload = alert(1) &gt;</li>
+      
+        <li><strong>phuong:</strong> &lt;svg onload = alert(1) &gt;</li>
+      
+        <li><strong>phuongg:</strong> &lt;svg onload =alert(1)&gt;
+</li>
+      
+        <li><strong>rr:</strong> tt</li>
+      
+        <li><strong>ttt:</strong> &lt;svg onload=alert(1)&gt;</li>
+      
+    </ul>
+  </body>
+</html>
+
+1) Simple output-encoding (Node/Express):
+```js
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// render comments safely
+comments.forEach(c => {
+  c.safeContent = escapeHtml(c.content);
+});
+res.render('post', { comments });

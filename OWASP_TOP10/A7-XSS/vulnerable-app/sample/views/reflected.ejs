@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Reflected XSS</title></head>
+  <body>
+    <h1>Reflected XSS demo</h1>
+    <form method="get" action="/reflected">
+      <input name="q" placeholder="search"/>
+      <button>Search</button>
+    </form>
+    <p>Kết quả: <span id="q"><%= q %></span></p>
+    <p>Payload example: <code>?q=&lt;script&gt;alert('xss')&lt;/script&gt;</code></p>
+  </body>
+</html>

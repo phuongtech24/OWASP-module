@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>DOM XSS</title></head>
+  <body>
+    <h1>DOM-based XSS demo</h1>
+    <p>Hash content will be injected below:</p>
+    <div id="out"></div>
+    <script>
+      const out = document.getElementById('out');
+      const hash = location.hash ? decodeURIComponent(location.hash.substring(1)) : '';
+      // Vulnerable on purpose:
+      out.innerHTML = hash;
+    </script>
+    <p>Example: <code>/dom#&lt;img src=x onerror=alert(1)&gt;</code></p>
+  </body>
+</html>

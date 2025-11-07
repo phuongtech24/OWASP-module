@@ -1,0 +1,160 @@
+===========================
+PROJECT: MyApp - Reflected XSS test
+TARGET: http://127.0.0.1:3000/reflected
+BURP LISTENER: 127.0.0.1:8081
+Tester: Nguyễn Khắc Nam Phương
+Date: 2025-11-06
+===========================
+
+--- A. BEFORE FIX (VULNERABLE) ---
+Timestamp: 2025-11-06 10:12:34
+Request (raw):
+GET /reflected?q=%3Csvg+onload%3D+alert%281%29%3E HTTP/1.1
+Host: 127.0.0.1:3000
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+Referer: http://127.0.0.1:3000/reflected
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+Priority: u=0, i
+
+
+
+
+
+
+Response (raw):
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: text/html; charset=utf-8
+Content-Length: 432
+ETag: W/"1b0-09ol18kBcLCHmWmajjjJ5VmM7lw"
+Date: Thu, 06 Nov 2025 09:26:27 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Reflected XSS</title></head>
+  <body>
+    <h1>Reflected XSS demo</h1>
+    <form method="get" action="/reflected">
+      <input name="q" placeholder="search"/>
+      <button>Search</button>
+    </form>
+    <p>Kết quả: <span id="q"><svg onload= alert(1)></span></p>
+    <p>Payload example: <code>?q=&lt;script&gt;alert('xss')&lt;/script&gt;</code></p>
+  </body>
+</html>
+
+
+)
+
+
+
+
+
+Payload executed in browser console; vulnerability: Reflected XSS (DOM/HTML) via parameter `q`.
+
+---
+
+--- B. AFTER FIX (PATCHED) ---
+Timestamp: 2025-11-06 14:30:10
+Request (raw): 
+GET /reflected?q=%3Csvg+onload%3D+alert%281%29%3E HTTP/1.1
+Host: 127.0.0.1:3000
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Referer: http://127.0.0.1:3000/reflected
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+If-None-Match: W/"1b0-09ol18kBcLCHmWmajjjJ5VmM7lw"
+Priority: u=0, i
+
+Response (raw):
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: text/html; charset=utf-8
+Content-Length: 438
+ETag: W/"1b6-NildJIyELRv6nbG/Tv1JheafT3M"
+Date: Thu, 06 Nov 2025 09:27:48 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Reflected XSS</title></head>
+  <body>
+    <h1>Reflected XSS demo</h1>
+    <form method="get" action="/reflected">
+      <input name="q" placeholder="search"/>
+      <button>Search</button>
+    </form>
+    <p>Kết quả: <span id="q">&lt;svg onload= alert(1)&gt;</span></p>
+    <p>Payload example: <code>?q=&lt;script&gt;alert('xss')&lt;/script&gt;</code></p>
+  </body>
+</html>
+
+
+Recommendation / Additional mitigations:
+
+Use the framework's templating auto-escaping where possible (e.g., EJS/Handlebars with escape enabled, or React for client-rendered content).
+
+Implement a Content Security Policy (CSP) to reduce impact of injected scripts.
+
+Avoid inserting untrusted data into HTML contexts (attributes, inline event handlers). If dynamic attributes are required, validate and whitelist values.
+
+Consider input validation (but do not rely on input validation alone; output-encoding is primary).
+
+Add unit tests or integration tests that assert that dangerous characters are escaped in responses.
+
+Proof (artifacts):
+
+Screenshot: burp_http_history_vulnerable.png (before fix)
+
+Screenshot: burp_http_history_patched.png (after fix)
+
+Source diff: patch.diff (commit id: <commit-hash-here>)
+
+--- C. Reproduction steps (for reviewer)
+
+Start app: npm install (if needed) and npm start (app listens on 127.0.0.1:3000).
+
+Ensure Burp running and browser configured to proxy 127.0.0.1:8081 (or use Firefox configured proxy).
+
+Use browser or curl to send:
+http://127.0.0.1:3000/reflected?q=<svg onload=alert(1)>
+
+BEFORE fix: observe alert popup or see payload unescaped in response body.
+
+Apply fix (see code snippet) and restart server.
+
+AFTER fix: repeat request → payload is escaped, no alert.
+
+Tested on:
+
+Firefox 144.0 (local)
+
+Chrome (with proxy flag) — optional
+
+--- D. Attachments & Notes
+
+Attach screenshots showing HTTP history + response body before/after.
+
+Include patch.diff or link to PR/commit for reviewer.
+
+Note any limitations: server-side templates must consistently escape all user-controlled data; check other endpoints too.
+
+===========================

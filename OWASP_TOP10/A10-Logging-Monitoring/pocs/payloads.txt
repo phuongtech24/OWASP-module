@@ -1,0 +1,9 @@
+# PoC and payloads for A10-Logging-Monitoring - Insufficient Logging & Monitoring
+
+- Description: [Short description of PoC vector]
+- PoC examples:
+  - Example 1: [payload or request]
+  - Example 2: [payload or request]
+
+Notes:
+- Capture HAR and Burp logs for evidence.

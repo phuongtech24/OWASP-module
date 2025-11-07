@@ -1,0 +1,6 @@
+# Manual test checklist for A6-Security-Misconfiguration
+
+- [ ] Reproduce vulnerability using PoC.
+- [ ] Apply fix.
+- [ ] Re-test to ensure vulnerability is mitigated.
+- [ ] Collect evidence (screenshots, logs).

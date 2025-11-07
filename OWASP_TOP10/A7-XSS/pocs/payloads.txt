@@ -1,0 +1,9 @@
+# PoC and payloads for A7-XSS - Cross-Site Scripting (XSS)
+
+- Description: [Short description of PoC vector]
+- PoC examples:
+  - Example 1: [payload or request]
+  - Example 2: [payload or request]
+
+Notes:
+- Capture HAR and Burp logs for evidence.

@@ -1,0 +1,6 @@
+# Manual test checklist for A3-Sensitive-Data-Exposure
+
+- [ ] Reproduce vulnerability using PoC.
+- [ ] Apply fix.
+- [ ] Re-test to ensure vulnerability is mitigated.
+- [ ] Collect evidence (screenshots, logs).
